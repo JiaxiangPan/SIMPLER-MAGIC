@@ -10,12 +10,8 @@ In order to use SIMPLER-MAGIC, you will need a Linux machine with:
 1. Configure: in the file simple_conf.cfg you will find the following content:
 ```ini
 [input_output]
-; input_path - write the name of the input file 
-input_path=full_adder_1bit.v
 ; input_format - the allowed values: verilog, blif
 input_format=verilog
-; output_path - write the desired name of the netlist generated using ABC 
-output_path=full_adder_1bit_output
 
 [abc]
 ; abc_dir_path - write the path to your ABC directory
@@ -36,5 +32,14 @@ Change the parameters according to your needs.
 
 2. Run:
 ```sh
-python3 simpler_main.py
+python3 simpler_main.py benchmark.blif row_size
 ```
+
+# SIMPLER-MAGIC-VERSION2
+Update of the Current Version (By panjiaxiang7(panjiaxiang7@163.com))
+```sh
+python3 simpler_main.py benchmark.blif row_size
+```
+The generated micro-operation files (in three formats) are located in the result directory. 
+For the 5 benchmarks mentioned in the paper, corresponding micro-operations have been produced.
+run.sh and ​all_run.sh are used to determine the minimum row size at which the current algorithm successfully completes the mapping.

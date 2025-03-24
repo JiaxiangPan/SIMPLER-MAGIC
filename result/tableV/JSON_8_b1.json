@@ -1,0 +1,32 @@
+{
+    "Benchmark": "b1_8",
+    "Row size": 8,
+    "Number of Gates": 12,
+    "Inputs": "{pa(0),pb(1),pc(2)}",
+    "Outputs": "{pd(0),pe(3),pf(5),pg(6)}",
+    "Number of Inputs": 3,
+    "Number of outputs": 4,
+    "Total cycles": 18,
+    "Reuse cycles": 6,
+    "Execution sequence": {
+        "T0": "Initialization(Ron){'INIT_CYCLE(3)','INIT_CYCLE(4)','INIT_CYCLE(5)','INIT_CYCLE(6)','INIT_CYCLE(7)'}",
+        "T1": "new_n9_(7)=inv1{pa(0)}",
+        "T2": "new_n10_(6)=inv1{pb(1)}",
+        "T3": "new_n11_(5)=nor2{new_n10_(6),new_n9_(7)}",
+        "T4": "new_n8_(4)=nor2{pb(1),pa(0)}",
+        "T5": "pe(3)=nor2{new_n11_(5),new_n8_(4)}",
+        "T6": "Initialization(Ron){new_n9_(7),new_n10_(6)}",
+        "T7": "pg(6)=inv1{pc(2)}",
+        "T8": "new_n14_(7)=inv1{new_n8_(4)}",
+        "T9": "Initialization(Ron){new_n8_(4)}",
+        "T10": "new_n15_(4)=nor2{new_n14_(7),pg(6)}",
+        "T11": "Initialization(Ron){new_n14_(7)}",
+        "T12": "new_n16_(7)=inv1{new_n11_(5)}",
+        "T13": "Initialization(Ron){new_n11_(5)}",
+        "T14": "new_n17_(5)=nor2{new_n16_(7),pc(2)}",
+        "T15": "Initialization(Ron){new_n16_(7)}",
+        "T16": "new_n18_(7)=nor2{new_n17_(5),new_n15_(4)}",
+        "T17": "Initialization(Ron){new_n15_(4),new_n17_(5)}",
+        "T18": "pf(5)=inv1{new_n18_(7)}"
+    }
+}

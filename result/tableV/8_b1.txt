@@ -1,0 +1,30 @@
+Benchmark: b1_8
+Row size: 8
+Number of Gates: 12
+Inputs: {pa(0),pb(1),pc(2)}
+Outputs: {pd(0),pe(3),pf(5),pg(6)}
+Number of PIs: 3
+Number of POs: 4
+Total cycles: 18
+Reuse cycles: 6
+Reuse cycles percentage: 33.33%
+Execution sequence:
+Cycle0: Initialization(Ron){'INIT_CYCLE(3)','INIT_CYCLE(4)','INIT_CYCLE(5)','INIT_CYCLE(6)','INIT_CYCLE(7)'}
+Cycle1: new_n9_(7)=inv1{pa(0)}
+Cycle2: new_n10_(6)=inv1{pb(1)}
+Cycle3: new_n11_(5)=nor2{new_n10_(6),new_n9_(7)}
+Cycle4: new_n8_(4)=nor2{pb(1),pa(0)}
+Cycle5: pe(3)=nor2{new_n11_(5),new_n8_(4)}
+Cycle6: Initialization(Ron){new_n9_(7),new_n10_(6)}
+Cycle7: pg(6)=inv1{pc(2)}
+Cycle8: new_n14_(7)=inv1{new_n8_(4)}
+Cycle9: Initialization(Ron){new_n8_(4)}
+Cycle10: new_n15_(4)=nor2{new_n14_(7),pg(6)}
+Cycle11: Initialization(Ron){new_n14_(7)}
+Cycle12: new_n16_(7)=inv1{new_n11_(5)}
+Cycle13: Initialization(Ron){new_n11_(5)}
+Cycle14: new_n17_(5)=nor2{new_n16_(7),pc(2)}
+Cycle15: Initialization(Ron){new_n16_(7)}
+Cycle16: new_n18_(7)=nor2{new_n17_(5),new_n15_(4)}
+Cycle17: Initialization(Ron){new_n15_(4),new_n17_(5)}
+Cycle18: pf(5)=inv1{new_n18_(7)}

@@ -1,0 +1,32 @@
+read /home/panjiaxiang/also/test/aiger_benchmarks/c17.aig 
+write_blif c17.blif
+read c17.blif 
+source /home/panjiaxiang/abc/abc.rc 
+write_verilog c17_mapped.v
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/EPFL/random_control/priority.blif 
+read_library /home/panjiaxiang/pjx_research/simpler-magic/mcnc1_nor2.genlib
+strash
+write_verilog test.v
+comb -h
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c1355.blif
+read all_run.sh 
+resyn
+resyn2
+resyn2rs
+write ../magic/veriSIMPLER_test/c1355_mapped.v
+source -s abc.rc
+read mcnc1_nor2.genlib 
+read_genlib mcnc1_nor2.genlib
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c1908.blif 
+write c1908_mapped.v
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c499.blif 
+write c499_mapped.v
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c3540.blif 
+write c3540_mapped.v
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c5315.blif 
+write c5315_mapped.v
+read /home/panjiaxiang/pjx_research/simpler_benchmark/blif/rl_blifs_small/c880.blif 
+resyn;resyn2;resyn2rs;map;ps
+write c880_mapped.v
+source -s abc.rc
+cec -n /home/panjiaxiang/benchmarks/arithmetic/multiplier.blif /home/panjiaxiang/benchmarks/EPFL_verilog_new_copy/multiplier.blif

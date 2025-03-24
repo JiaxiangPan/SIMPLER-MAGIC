@@ -1,9 +1,7 @@
 source abc_rc_path
 read_blif input.blif
-read_library lib.genlib
-strash 	
-resyn
+read_library lib.genlib 	
+strash
 resyn2
-resyn2rs
 map                       	// required when custom genlib is used
 write_verilog output.v

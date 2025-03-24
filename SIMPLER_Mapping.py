@@ -414,7 +414,8 @@ class GraphNode:
 
 class SIMPLER_Top_Data_Structure:
 
-    def __init__(self, RowSize, bmfId, Benchmark):
+    def __init__(self, RowSize, bmfId, Benchmark, output_path):
+        self.output_directory_path = output_path
         self.PRINT_WARNING = False
         self.PRINT_CODE_GEN = False
         self.JSON_CODE_GEN = False    
@@ -552,6 +553,13 @@ class SIMPLER_Top_Data_Structure:
                 input_list_for_print += self.InputString[input_idx] + '(' + str(self.NodesList[input_idx].GetNodeMap()) + '),'                    
         input_list_for_print = input_list_for_print[:len(input_list_for_print) - 1] + '}'
         self.Intrl_Print(input_list_for_print)
+
+        #for veriSIMPLER   
+        input_list_for_print_veriSIMPLER = 'Inputs:' 
+        for input_idx in range(0,self.lr - self.lc):
+            if (self.NodesList[input_idx].GetNodeOp() != NodeData.Get_no_inputs_op_val()): 
+                input_list_for_print_veriSIMPLER += self.InputString[input_idx] + '(' + 'M' +str(self.NodesList[input_idx].GetNodeMap()) + '),'                    
+        input_list_for_print_veriSIMPLER = input_list_for_print_veriSIMPLER[:len(input_list_for_print_veriSIMPLER) - 1]
         
         #outputs
         output_len = len(self.OutputString)
@@ -564,12 +572,35 @@ class SIMPLER_Top_Data_Structure:
         output_list_for_print = output_list_for_print[:len(output_list_for_print) - 1] + '}'
         self.Intrl_Print(output_list_for_print)
 
+        #for veriSIMPLER
+        output_list_for_print_veriSIMPLER = 'Outputs:' 
+        for output_idx in range(0,output_len):
+            idx = output_idx + ofst
+            if (self.NodesList[idx].GetNodeOp() != NodeData.Get_no_inputs_op_val()): #Has inputs
+                output_list_for_print_veriSIMPLER += self.OutputString[output_idx] + '(' + 'M' +str(self.NodesList[idx].GetNodeMap()) + '),'                    
+        output_list_for_print_veriSIMPLER = output_list_for_print_veriSIMPLER[:len(output_list_for_print_veriSIMPLER) - 1]
+
         #Execution sequence
         mergerd_list = self.NodesList + self.InitializationList
         mergerd_list.sort(key = lambda k: k.GetNodeTime(), reverse=False) #Sorts by time
         #execution_dict_for_JSON=OrderedDict({}) #JSON
+
+        # cells_to_init_list = ['INIT_CYCLE(' + str(idx) + ')' for idx in range(self.i, self.RowSize)]
+        # execution_dict_for_JSON=OrderedDict({'T0':'Initialization(Ron)'+ str(cells_to_init_list).replace('[','{').replace(']','}').replace(' ','')}) #JSON
+        
+        #修改之后，T0中初始化的micro_operations不在含有 '
+        #使得生成的micro_operations能够被layout验证工具进行验证
         cells_to_init_list = ['INIT_CYCLE(' + str(idx) + ')' for idx in range(self.i, self.RowSize)]
-        execution_dict_for_JSON=OrderedDict({'T0':'Initialization(Ron)'+ str(cells_to_init_list).replace('[','{').replace(']','}').replace(' ','')}) #JSON
+        formatted_string = "Initialization(Ron){" + ",".join(cells_to_init_list) + "}"
+        from collections import OrderedDict
+        execution_dict_for_JSON = OrderedDict({'T0': formatted_string})
+
+        #for veriSIMPLER 
+        cells_to_init_list_veriSIMPLER = ['M' + str(idx) for idx in range(self.i, self.RowSize)]
+        formatted_string_veriSIMPLER = "INIT " + ",".join(cells_to_init_list_veriSIMPLER)
+        from collections import OrderedDict
+        execution_dict_for_JSON_veriSIMPLER = OrderedDict({'T0': formatted_string_veriSIMPLER})
+
         self.Intrl_Print('\nEXECUTION SEQUENCE + MAPPING: {')
         for node in mergerd_list:
             if (node.GetNodeOp() == NodeData.Get_Initialization_op_val()):            
@@ -577,8 +608,15 @@ class SIMPLER_Top_Data_Structure:
                 for pair in node.GetNodeInputs_list(): #in a case of Initialization, inputs_list composed of [gate_number,cell_number] elements
                     init_list_to_print += self.varLegendRow[pair[0]] + '(' + str(pair[1]) + '),'
                 init_list_to_print = init_list_to_print[:len(init_list_to_print) - 1] + '}' 
+                #for veriSIMPLER: init_list_to_print_veriSIMPLER
+                init_list_to_print_veriSIMPLER = ''
+                for pair in node.GetNodeInputs_list(): #in a case of Initialization, inputs_list composed of [gate_number,cell_number] elements
+                    #init_list_to_print_veriSIMPLER += self.varLegendRow[pair[0]] + '(' + 'M' + str(pair[1]) + '),'
+                    init_list_to_print_veriSIMPLER += 'M' + str(pair[1]) + ','
+                init_list_to_print_veriSIMPLER = init_list_to_print_veriSIMPLER[:len(init_list_to_print_veriSIMPLER) - 1]
                 self.Intrl_Print('T' + str(node.GetNodeTime()) + ':Initialization(Ron)' +  init_list_to_print)
                 execution_dict_for_JSON.update({'T' + str(node.GetNodeTime()) : 'Initialization(Ron)' +  init_list_to_print})  #JSON 
+                execution_dict_for_JSON_veriSIMPLER.update({'T' + str(node.GetNodeTime()) : 'INIT ' +  init_list_to_print_veriSIMPLER})  #for veriSIMPLER
             else:    
                 node_name = self.varLegendRow[node.GetNodeNum()]
                 if (node.GetNodeTime() != 0): #not an input
@@ -587,7 +625,19 @@ class SIMPLER_Top_Data_Structure:
                         inputs_str = inputs_str + self.varLegendRow[Input] + '(' + str(self.NodesList[Input].GetNodeMap()) + ')' + ','
                     inputs_str = '{' + inputs_str[:len(inputs_str) - 1] + '}'
                     self.Intrl_Print('T' + str(node.GetNodeTime()) + ':' + node_name + '(' + str(node.GetNodeMap()) +')=' + node.GetNodeOp() + inputs_str)
+                    #for veriSIMPLER: inputs_str_veriSIMPLER
+                    #
+                    # inputs_str_veriSIMPLER = ''   #T4: new_n12(M8)=nor2{new_n11(M9),gin0(M2)}        
+                    # for Input in node.GetNodeInputs_list():
+                    #     inputs_str_veriSIMPLER = inputs_str_veriSIMPLER + self.varLegendRow[Input] + '(' + 'M' + str(self.NodesList[Input].GetNodeMap()) + ')' + ','
+                    # inputs_str_veriSIMPLER = '{' + inputs_str_veriSIMPLER[:len(inputs_str_veriSIMPLER) - 1] + '}'
+                    inputs_str_veriSIMPLER = '' #T3: M7 = nor2 {M8,M9}        
+                    for Input in node.GetNodeInputs_list():
+                        inputs_str_veriSIMPLER = inputs_str_veriSIMPLER + 'M' + str(self.NodesList[Input].GetNodeMap()) + ','
+                    inputs_str_veriSIMPLER = ' {' + inputs_str_veriSIMPLER[:len(inputs_str_veriSIMPLER) - 1] + '}'
                     execution_dict_for_JSON.update({'T' + str(node.GetNodeTime()) : node_name + '(' + str(node.GetNodeMap()) +')=' + node.GetNodeOp() + inputs_str}) #JSON
+                    # execution_dict_for_JSON_veriSIMPLER.update({'T' + str(node.GetNodeTime()) : node_name + '(' + 'M' +str(node.GetNodeMap()) +')=' + node.GetNodeOp() + inputs_str_veriSIMPLER}) #for veriSIMPLER
+                    execution_dict_for_JSON_veriSIMPLER.update({'T' + str(node.GetNodeTime()) : 'M' +str(node.GetNodeMap()) +' = ' + node.GetNodeOp() + inputs_str_veriSIMPLER}) #for veriSIMPLER
                 elif (node.GetNodeOp() != NodeData.Get_no_inputs_op_val()): #line.time = 0 -- inputs
                     self.Intrl_Print('T' + str(node.GetNodeTime()) + ':' + node_name + '(' + str(node.GetNodeNum()) +')=' + node.GetNodeOp())    
                     #execution_dict_for_JSON.update({'T' + str(node.GetNodeTime()) : node_name + '(' + str(node.GetNodeMap()) +')=' + node.GetNodeOp()}) #JSON                    
@@ -618,11 +668,72 @@ class SIMPLER_Top_Data_Structure:
             top_JSON_dict.update({'Total cycles':self.t})
             top_JSON_dict.update({'Reuse cycles':self.ReuseCycles})
             top_JSON_dict.update({'Execution sequence' : execution_dict_for_JSON})
-            #print('Benchmark= ',Benchmark)                             
-            with open('JSON_' + str(self.RowSize) + '_' + self.Benchmark + '.json','w') as f:
+            #print('Benchmark= ',Benchmark)  
+            #output_folder = "/home/panjiaxiang/pjx_research/simpler-magic/result/"   
+            output_folder = self.output_directory_path + '/'                        
+            with open(output_folder + 'JSON_' + str(self.RowSize) + '_' + self.Benchmark + '.json','w') as f:
                 simplejson.dump(top_JSON_dict,f,indent=4)
-            f.close()                
-
+            f.close()
+            
+            #输出与Magic一样的micro operation文件
+            #output_folder_path = "/home/panjiaxiang/pjx_research/simpler-magic/result/" 
+            output_folder_path = self.output_directory_path + '/'
+            output_file_path = output_folder_path + str(self.RowSize) + '_' + self.Benchmark + '.txt'      
+            with open(output_file_path, "w") as f:
+                f.write(f"Benchmark: {self.Benchmark}_{self.RowSize}\n")
+                f.write(f"Row size: {self.RowSize}\n")
+                f.write(f"Number of Gates: {connected_gates}\n")
+                f.write(f"Inputs: {input_list_for_print[len('Inputs:'):]}\n")
+                f.write(f"Outputs: {output_list_for_print[len('Outputs:'):]}\n")
+                f.write(f"Number of PIs: {len(self.InputString)}\n")
+                f.write(f"Number of POs: {len(self.OutputString)}\n")
+                f.write(f"Total cycles: {self.t}\n")
+                f.write(f"Reuse cycles: {self.ReuseCycles}\n")
+                if self.t != 0:  
+                    reuse_percentage = (self.ReuseCycles / self.t) * 100
+                else:
+                    reuse_percentage = 0
+                f.write(f"Reuse cycles percentage: {reuse_percentage:.2f}%\n")
+                f.write("Execution sequence:\n")
+                # for key, value in execution_dict_for_JSON.items():
+                #     f.write(f"{key}: {value}\n")
+                for idx, (key, value) in enumerate(execution_dict_for_JSON.items()):
+                    #execution_dict_for_JSON 存储了微操作符
+                    #格式如下：
+                    # T0 Initialization(Ron){INIT_CYCLE(4),INIT_CYCLE(5),INIT_CYCLE(6),INIT_CYCLE(7),INIT_CYCLE(8),INIT_CYCLE(9)}
+                    # T1 new_n9(9)=inv1{gin1(0)}
+                    # T2 new_n10(8)=inv1{pin0(3)}
+                    # ...
+                    # T7 Initialization(Ron){new_n9(9),new_n11(7),new_n12(6)}
+                    # ...
+                    # print("key, value:")
+                    # print(key, value)
+                    new_key = f"Cycle{key[1:]}"
+                    f.write(f"{new_key}: {value}\n")
+            
+            #输出与veriSIMPLER论文中一样的micro operation文件
+            #output_folder_path = "/home/panjiaxiang/pjx_research/simpler-magic/result/" 
+            output_folder_path = self.output_directory_path + '/'
+            output_file_path = output_folder_path + 'veriSIMPLER_' +str(self.RowSize) + '_' + self.Benchmark + '.txt'      
+            with open(output_file_path, "w") as f:
+                f.write(f"Benchmark: {self.Benchmark}_{self.RowSize}\n")
+                f.write(f"Row size: {self.RowSize}\n")
+                f.write(f"Number of Gates: {connected_gates}\n")
+                f.write(f"Inputs: {input_list_for_print_veriSIMPLER[len('Inputs:'):]}\n")
+                f.write(f"Outputs: {output_list_for_print_veriSIMPLER[len('Outputs:'):]}\n")
+                f.write(f"Number of PIs: {len(self.InputString)}\n")
+                f.write(f"Number of POs: {len(self.OutputString)}\n")
+                f.write(f"Total cycles: {self.t}\n")
+                f.write(f"Reuse cycles: {self.ReuseCycles}\n")
+                if self.t != 0:  
+                    reuse_percentage = (self.ReuseCycles / self.t) * 100
+                else:
+                    reuse_percentage = 0
+                f.write(f"Reuse cycles percentage: {reuse_percentage:.2f}%\n")
+                f.write("Execution sequence:\n")
+                for idx, (key, value) in enumerate(execution_dict_for_JSON_veriSIMPLER.items()):
+                    new_key = f"T{key[1:]}"
+                    f.write(f"{new_key}: {value}\n")
 
     def PrintLines(self):
         for line in self.code_generation_table:
@@ -858,7 +969,7 @@ class SIMPLER_Top_Data_Structure:
 
    
 #======================== SIMPLER MAPPING =======================
-def SIMPLER_Main (BenchmarkStrings, Max_num_gates, ROW_SIZE, Benchmark_name, generate_json, print_mapping, print_warnings, end_of_line_output):
+def SIMPLER_Main (BenchmarkStrings, Max_num_gates, ROW_SIZE, Benchmark_name, generate_json, print_mapping, print_warnings, end_of_line_output, output_directory_path):
     global JSON_CODE_GEN, PRINT_CODE_GEN, PRINT_WARNING, SORT_ROOTS, END_OF_LINE_OUTPUT
     
     #print controls
@@ -867,29 +978,28 @@ def SIMPLER_Main (BenchmarkStrings, Max_num_gates, ROW_SIZE, Benchmark_name, gen
     PRINT_WARNING = print_warnings
     SORT_ROOTS = 'NO' #Set to one of the follows: 'NO, 'ASCEND' 'DESCEND'
     END_OF_LINE_OUTPUT = end_of_line_output
-    
-    for Row_size in ROW_SIZE: 
-        for Benchmark in BenchmarkStrings:
-            
-            #Parse operations 
-            bmfId = open(Benchmark,"r") #open file       
-            SIMPLER_TDS = SIMPLER_Top_Data_Structure(Row_size,bmfId,Benchmark_name)
-                          
-            if (SIMPLER_TDS.Get_lr()>Max_num_gates or SIMPLER_TDS.Get_lc()>Max_num_gates):
-                print("** net too big, skip " + str(SIMPLER_TDS.Get_lr()) +" X " + str(SIMPLER_TDS.Get_lc()) + "\n")
-                continue
-                              
-            #Statistics calculations 
-            SIMPLER_TDS.Set_Max_Num_Of_Used_Cells(CellInfo.get_max_num_of_used_cells())
-            code_generation_success_flag =SIMPLER_TDS.RunAlgorithm()
-            if (code_generation_success_flag == True):
-                SIMPLER_TDS.PrintCodeGeneration() 
-            
-            #Benchmark's end 
-            bmfId.close() #close file
-            CellInfo.Set_cur_num_of_used_cells_to_zero() #need to initiate because its a class variable
-            CellInfo.Set_max_num_of_used_cells_to_zero() #need to initiate because its a class variable
-            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ \n')
+     
+    for Benchmark in BenchmarkStrings:
+        
+        #Parse operations 
+        bmfId = open(Benchmark,"r") #open file       
+        SIMPLER_TDS = SIMPLER_Top_Data_Structure(ROW_SIZE,bmfId,Benchmark_name, output_directory_path)
+                        
+        if (SIMPLER_TDS.Get_lr()>Max_num_gates or SIMPLER_TDS.Get_lc()>Max_num_gates):
+            print("** net too big, skip " + str(SIMPLER_TDS.Get_lr()) +" X " + str(SIMPLER_TDS.Get_lc()) + "\n")
+            continue
+                            
+        #Statistics calculations 
+        SIMPLER_TDS.Set_Max_Num_Of_Used_Cells(CellInfo.get_max_num_of_used_cells())
+        code_generation_success_flag =SIMPLER_TDS.RunAlgorithm()
+        if (code_generation_success_flag == True):
+            SIMPLER_TDS.PrintCodeGeneration() 
+        
+        #Benchmark's end 
+        bmfId.close() #close file
+        CellInfo.Set_cur_num_of_used_cells_to_zero() #need to initiate because its a class variable
+        CellInfo.Set_max_num_of_used_cells_to_zero() #need to initiate because its a class variable
+        print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ \n')
 
 #=========================== End of SIMPLER MAPPING ===========================
 

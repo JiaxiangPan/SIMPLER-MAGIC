@@ -1,0 +1,51 @@
+Benchmark: con1_13
+Row size: 13
+Number of Gates: 30
+Inputs: {a(0),b(1),c(2),d(3),f(4),g(5),h(6)}
+Outputs: {f0(7),f1(8)}
+Number of PIs: 7
+Number of POs: 2
+Total cycles: 39
+Reuse cycles: 9
+Reuse cycles percentage: 23.08%
+Execution sequence:
+Cycle0: Initialization(Ron){'INIT_CYCLE(7)','INIT_CYCLE(8)','INIT_CYCLE(9)','INIT_CYCLE(10)','INIT_CYCLE(11)','INIT_CYCLE(12)'}
+Cycle1: new_n10_(12)=inv1{b(1)}
+Cycle2: new_n11_(11)=inv1{h(6)}
+Cycle3: new_n12_(10)=nor2{new_n11_(11),f(4)}
+Cycle4: new_n13_(9)=nor2{new_n12_(10),a(0)}
+Cycle5: new_n14_(8)=nor2{new_n13_(9),new_n10_(12)}
+Cycle6: new_n16_(7)=inv1{d(3)}
+Cycle7: Initialization(Ron){new_n11_(11),new_n12_(10),new_n13_(9)}
+Cycle8: new_n17_(9)=inv1{c(2)}
+Cycle9: new_n18_(10)=nor2{f(4),new_n17_(9)}
+Cycle10: new_n19_(11)=nor2{new_n18_(10),new_n16_(7)}
+Cycle11: Initialization(Ron){new_n17_(9),new_n16_(7),new_n18_(10)}
+Cycle12: new_n20_(10)=inv1{new_n19_(11)}
+Cycle13: new_n15_(7)=nor2{c(2),new_n10_(12)}
+Cycle14: new_n21_(9)=nor2{new_n20_(10),new_n15_(7)}
+Cycle15: Initialization(Ron){new_n19_(11),new_n15_(7),new_n20_(10)}
+Cycle16: new_n22_(10)=nor2{new_n21_(9),new_n14_(8)}
+Cycle17: f0(7)=inv1{new_n22_(10)}
+Cycle18: new_n25_(11)=inv1{f(4)}
+Cycle19: Initialization(Ron){new_n14_(8),new_n21_(9),new_n22_(10)}
+Cycle20: new_n26_(10)=nor2{d(3),b(1)}
+Cycle21: new_n27_(9)=inv1{new_n26_(10)}
+Cycle22: new_n28_(8)=nor2{new_n27_(9),new_n25_(11)}
+Cycle23: Initialization(Ron){new_n26_(10),new_n25_(11),new_n27_(9)}
+Cycle24: new_n24_(9)=nor2{g(5),f(4)}
+Cycle25: new_n29_(11)=nor2{new_n28_(8),new_n24_(9)}
+Cycle26: new_n30_(10)=inv1{new_n29_(11)}
+Cycle27: Initialization(Ron){new_n24_(9),new_n28_(8),new_n29_(11)}
+Cycle28: new_n33_(11)=inv1{a(0)}
+Cycle29: new_n31_(8)=nor2{f(4),new_n10_(12)}
+Cycle30: new_n34_(9)=inv1{new_n31_(8)}
+Cycle31: Initialization(Ron){new_n10_(12)}
+Cycle32: new_n35_(12)=nor2{new_n34_(9),new_n33_(11)}
+Cycle33: Initialization(Ron){new_n33_(11),new_n34_(9)}
+Cycle34: new_n32_(9)=nor2{new_n31_(8),a(0)}
+Cycle35: new_n36_(11)=nor2{new_n35_(12),new_n32_(9)}
+Cycle36: Initialization(Ron){new_n31_(8),new_n32_(9),new_n35_(12)}
+Cycle37: new_n37_(12)=inv1{new_n36_(11)}
+Cycle38: new_n38_(9)=nor2{new_n37_(12),new_n30_(10)}
+Cycle39: f1(8)=inv1{new_n38_(9)}
